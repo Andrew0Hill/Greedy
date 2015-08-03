@@ -1,0 +1,18 @@
+Vertexes
+0- B Buth et al    Provably Correct Compiler Implementation    Compiler Construction    1992  pp 141155   in U Karstens and P Pfahler eds    buth1992a 6  -bbutetalprocorcomimpbuth1992a6-bbuthetalprcocoim1992pp141155buth1992a6
+1- B Buth KH Buth M Franzle B v Karger Y Lakhneche H Langmaack and M MullerOlm    Provably correct compiler development and implementation    Compiler Construction    1992   In U Kastens and P Pfahler editors  volume 641 of Lecture Notes in Computer Science   buth1992a 5  -bbutkhbutmfrabvkarylakhlanmmulprocorcomdevimpbuth1992a5-bbuthkhbuthmfranbvkargylakhhlangmmullprcocodeim1992vbuth1992a5
+2- Benford S and Fahln L    Viewpoints Actionpoints and Spatial Frames for Collaborative User Interfaces    6th ERCIM workshop  Stockholm    June 1994      1994  benford1994a  -bensfahlvieactspafrafocoluseintbenford1994a-benfsfahllviacspfrfocousinsne199benford1994a
+3- Bettina Buth KarlHeinz Buth Martin Franzle Burghard von Karger Yassine Lakhneche Hans Langmaack and Markus MullerOlm    Provably correct compiler development and implementation    Compiler Construction number 641 in Lecture Notes in Computer Science    1992  pages 141155   In U Kastens and P Pfahler editors    buth1992a   -betbutkarbutmarfraburvonkaryaslakhanlanmarmulprocorcomdevimpbuth1992a-bettbuthkarlbuthmartfranburgvonkargyasslakhhanslangmarkmullprcocodeim1992pages141155buth1992a
+4- C Ray Asfahl    Robots and Manufacturing Automation     New York   1992    second edition   asfahl1992a   -crayasfrobmanautasfahl1992a-crayasfaromaau1992asfahl1992a
+5- M Ahlskog J Paloheimo H Stubb P Dyreklev M Fahlman O   76   Inganas and MR      1994 893    ahlskog1994a   -mahljpalhstupdyrmfahoingmrahlskog1994a-mahlsjpalohstubpdyremfahlo76inmr1994893ahlskog1994a
+6- M Ahlskog J Paloheimo H Stubb P Dyreklev M Fahlman O </au Inganas and MR Andersson  76       1994 893     ahlskog1994a   -mahljpalhstupdyrmfahoauingmrandahlskog1994a-mahlsjpalohstubpdyremfahloauingamrande761994893ahlskog1994a
+7- M Ahlskog J Paloheimo H Stubb P Dyreklev M Fahlman O Inganas and MR Andersson  76       1994 893     ahlskog1994a   -mahljpalhstupdyrmfahoingmrandahlskog1994a-mahlsjpalohstubpdyremfahloingamrande761994893ahlskog1994a
+8- Steve Benford and Lennart E Fahlen    A spatial model of interaction in large virtual environments    In Proceedings of ECSCW93   Milan    1993      September  benford1993a   -stebenlenefahspamodofintinlarvirenvbenford1993a-stevbenflennefahlspmoofininlavien1993sepbenford1993a
+Edges
+0-1-3-0.7536232
+1-5-6-0.88372093
+2-5-7-0.9268293
+3-6-7-0.95348835
+Clusters
+2-0
+5-1-2-3
