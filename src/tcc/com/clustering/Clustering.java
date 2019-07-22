@@ -633,10 +633,13 @@ public class Clustering {
 		List<Float> medias = new ArrayList<Float>();
 		List<String> lista = new ArrayList<String>();
 
-		List<List<List<String>>> dadosBDBySchemma = Util.getDataBD();
-		List<List<String>> dadosBD = dadosBDBySchemma.get(0);
-		dadosBD.addAll(dadosBDBySchemma.get(1));
 
+
+		//List<List<List<String>>> dadosBDBySchemma = Util.getDataBD();
+		//List<List<String>> dadosBD = dadosBDBySchemma.get(0);
+		//dadosBD.addAll(dadosBDBySchemma.get(1));
+
+		List<List<String>> dadosBD = Util.getDataFile(new String[]{"schema1.csv","schema2.csv"});
 		Block bloco = new Block(lista);
 		bloco.lista = bloco.genKey(dadosBD); 
 		//lista vai guardar key+'\t'+id+'\t'+keyCompare onde id eh idBD, key usa tuudo

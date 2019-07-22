@@ -15,10 +15,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +30,8 @@ import tcc.com.clustering.Clustering;
 import tcc.com.graph.Edge;
 import tcc.com.graph.NameGraph;
 import tcc.com.graph.VertName;
+
+import javax.lang.model.type.ArrayType;
 
 public class Util {
 	//script q le um xml especifico
@@ -324,6 +323,23 @@ public class Util {
 		conn.close();
 	}
 
+	public static List<List<String>> getDataFile(String[] filenames) throws FileNotFoundException, IOException{
+		List<List<String>> data_file = new ArrayList<List<String>>();
+		for (String filename: filenames) {
+			BufferedReader reader = new BufferedReader(new FileReader(filename));
+			// Skip the header of each file.
+			reader.readLine();
+			// Start reading here.
+			String line = reader.readLine();
+			while (line != null) {
+				List<String> values_row = Arrays.asList(line.split(";"));
+				data_file.add(values_row);
+				line = reader.readLine();
+			}
+			reader.close();
+		}
+		return data_file;
+	}
 	public static List<List<List<String>>> getDataBD() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
 		String author,volume,title,institution,venue,address,publisher,year,pages,editor,note,month,classe;
 		int cluster, id;
