@@ -1,43 +1,29 @@
-package tcc.com.block;
+package org.cud2v.graphcluster.block;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import org.cud2v.graphcluster.graph.Edge;
+import org.cud2v.graphcluster.graph.NameGraph;
+import org.cud2v.graphcluster.graph.VertName;
+import org.cud2v.graphcluster.similarity.Similarity;
 
-import tcc.com.graph.Edge;
-import tcc.com.graph.NameGraph;
-import tcc.com.graph.VertName;
-import tcc.com.similarity.Similarity;
-import tcc.com.similarity.SmithWaterman;
-import tcc.com.util.Util;
+import java.util.*;
 
 public class Block{
 
-	public static List<?> lista;
-	private static List<String> simlist; 
+	public static List<List<String>> lista;
+	private static List<String> simlist;
 	//tem o id automatico do VertName <tab> ID da tabela <tab> chave gerada
 	public static List<String> IdKey = new ArrayList<String>();
-	//mapkey é o map que guarda a quantidade de keys que tiveram merge;
-	static Map<String,Integer> mapkey;
-	//mapvalue é o map que guarda key e value
+	//mapkey ï¿½ o map que guarda a quantidade de keys que tiveram merge;
+	static Map<String, Integer> mapkey;
+	//mapvalue ï¿½ o map que guarda key e value
 	static Map<String, Object> mapvalue;
 
 	//FAZER UM MAP CHAVE - TUPLA
-	static Map<String, String[]> keytuple;	
+	static Map<String, List<String>> keytuple;
 
-	public Block (List<?> lista){
-		this.lista = lista;		
-	}
 
 	/**
-	 * Gera a key para cada linha de entrada (no momento removendo espaços em branco que separam primeiro nome e sobrenomes) Ex: Aracelly Maria Guerra Azevedo se torna aracellymariaguerraazevedo.
+	 * Gera a key para cada linha de entrada (no momento removendo espaï¿½os em branco que separam primeiro nome e sobrenomes) Ex: Aracelly Maria Guerra Azevedo se torna aracellymariaguerraazevedo.
 	 * retorna a lista de keys ordenada, sem acentos e com caracteres em lower case.
 	 * **/
 	/*
@@ -66,12 +52,12 @@ public class Block{
 	}
 	 */
 	//	2author;3volume;4title;5institution;6venue;7address;8publisher;9year;10pages;11editor;12note;13month;14class
-	public static List<String> genKey(List<List<String>> lista){
+/*	public static List<String> genKey(List<List<String>> lista){
 
 		List<String> list = new ArrayList<String>();
-		mapkey = new HashMap<String,Integer>();
+		mapkey = new HashMap<String, Integer>();
 		mapvalue = new HashMap<String, Object>();
-		keytuple = new HashMap<String, String[]>();
+		keytuple = new HashMap<String, List<String>>();
 		String key = "";
 		String id = "";
 		String keyCompare = "";
@@ -204,8 +190,8 @@ public class Block{
 				}
 			}	
 
-			key = Normalizer.normalize(key,Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").toLowerCase();
-			keyCompare = Normalizer.normalize(keyCompare,Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").toLowerCase();
+			key = Normalizer.normalize(key, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").toLowerCase();
+			keyCompare = Normalizer.normalize(keyCompare, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").toLowerCase();
 			String[] value = toArray(obj);
 			System.out.println(value[1]);
 			keytuple.put(key, value);
@@ -226,7 +212,35 @@ public class Block{
 
 		Collections.sort(list);
 		return list;	
-	}
+	}*/
+
+	// Generates a "key" which is used to compare the org.cud2v.graphcluster.similarity of the records.
+/*	public static List<String> genKeyObs(List<List<String>> list){
+		keytuple = new HashMap<String, String[]>();
+
+		ArrayList<String> keys = new ArrayList<>();
+		StringBuilder bl = new StringBuilder();
+        for (List<String> row : list){
+
+        	String id = row.get(0);
+        	String cmp_key = row.get(1);
+			if (cmp_key.equals("")){
+				cmp_key = "placeholder";
+			}
+			bl.append(cmp_key);
+			bl.append("\t");
+			bl.append(id);
+			bl.append("\t");
+			bl.append(cmp_key);
+
+			// Add our string to the list we're returning.
+        	keys.add(bl.toString());
+        	// Reset the StringBuilder at the end of the interation.
+        	bl.setLength(0);
+        	keytuple.put(cmp_key,toArray(row));
+		};
+        return keys;
+    }*/
 
 	public static String[] toArray(List<String> obj){
 		String[] retorno = new String[obj.size()];
@@ -260,6 +274,62 @@ public class Block{
 		return null;
 	}
 
+	public static double similarity(List<String> left, List<String> right){
+		// Fields [2,5] contain the values we want to compare, use the org.cud2v.graphcluster.similarity metric from the paper.
+		int num_match = 0;
+		for(int col = 2; col <= 6; ++col) {
+			if (left.get(col).toLowerCase().equals(right.get(col).toLowerCase())) {
+				num_match += 1;
+			}
+		}
+		double score = 0.0;
+		switch(num_match){
+			case 3:
+				score = 0.8;
+				break;
+			case 4:
+				score = 0.9;
+				break;
+			case 5:
+				score = 1.0;
+				break;
+			default:
+				score = 0.0;
+				break;
+		}
+		return score;
+	}
+
+	public static NameGraph getInitialGraphObs(){
+		Map<Integer,Edge> edges = new HashMap<Integer,Edge>();
+		Map<Integer,VertName> vertices = new HashMap<Integer,VertName>();
+		simlist = new ArrayList<String>();
+
+		NameGraph graph = new NameGraph();
+		VertName elem1;
+		VertName elem2;
+		// Iterate the rows
+		for(int i = 0; i < lista.size(); ++i) {
+			// Hardcode the location of the ID string.
+			String elem1_name = lista.get(i).get(1);
+			elem1 = new VertName(elem1_name);
+			elem1.insertIdBD(elem1_name);
+			// Similarities should be symmetric so only need to calculate half of the
+			// pairs. We also don't need to calculate self-similarities.
+			for (int j = i+1; j < lista.size(); ++i) {
+
+			}
+		}
+		return graph;
+	}
+
+	/*
+	Gets the connected component
+	 */
+	public static NameGraph getConnectedComponentClusters(List<List<String>> increment){
+		return new NameGraph();
+	}
+
 
 	//simlist contem valores de similaridade dos blocos que sao sobrepostos
 	public static NameGraph getInitialGraph(int window){
@@ -270,7 +340,7 @@ public class Block{
 		VertName elem1;
 		VertName elem2;
 		Edge aresta;
-		float valo;
+		double valo;
 		String add;
 		int aux;
 		int last = 0;
@@ -279,21 +349,20 @@ public class Block{
 		for(int i = 0; i<lista.size();i++){
 			add = "";
 			aux = window;
-			String nome = lista.get(i).toString().split("\t")[0];
-			String idBD = lista.get(i).toString().split("\t")[1];
-			String keyCompare = lista.get(i).toString().split("\t")[2];
-			List<String> list = (List<String>) lista;
+			String nome = lista.get(i).get(1);
+			String idBD = lista.get(i).get(1);
+			List<List<String>> list = lista;
 
 			elem1 = new VertName(nome);
 			elem1.insertIdBD(idBD);
-			elem1.setKey(keyCompare);
-			elem1.setTupla(keytuple.get(nome));
+			elem1.setData(lista.get(i));
+			//elem1.setTupla(keytuple.get(nome));
 
 			VertName alrExist = existVert(vertices, elem1);
 
 			if(alrExist == null){
 				vertices.put(elem1.getId(), elem1);
-				System.out.println("adicionado em 1 - "+ elem1.getIdBD() + " " + elem1.getId());
+				//System.out.println("adicionado em 1 - "+ elem1.getIdBD() + " " + elem1.getId());
 			}else{
 				elem1 = alrExist;
 			}
@@ -304,27 +373,31 @@ public class Block{
 				if(j > i && aux > 0){
 					aresta = null;
 					valo = 0;
-					if(elem1.getId() == 11){
+/*					if(elem1.getId() == 11){
 						System.out.println("lina 440 Block bug");
-					}
+					}*/
 
-					String nome2 = lista.get(j).toString().split("\t")[0];
-					String idBD2 = lista.get(j).toString().split("\t")[1];
-					String key2 = lista.get(j).toString().split("\t")[2];
+					String nome2 = lista.get(j).get(1);
+					String idBD2 = lista.get(j).get(1);
 
 					elem2 = new VertName(nome2);
 					elem2.insertIdBD(idBD2);
-					elem2.setKey(key2);
-					elem2.setTupla(keytuple.get(nome2));
+					elem2.setData(lista.get(j));
+					//elem2.setTupla(keytuple.get(nome2));
 
-					//					SmithWaterman sw = new SmithWaterman(elem1.getKey(), elem2.getKey());
+					//					SmithWaterman sw = new SmithWaterman(elem1.getData(), elem2.getData());
 					//					valo = sw.getSimSW();
 
-					valo = Similarity.getFedit(elem1.getKey(), elem2.getKey());
+					//valo = Similarity.getFedit(elem1.getData(), elem2.getData());
+					try {
+						//valo = (float) (dice_dist.process(elem1.getData(), elem2.getData())/100);
+						valo = similarity(elem1.getData(),elem2.getData());
+					}catch(Exception e){e.printStackTrace();}
+
 
 					alrExist = existVert(vertices, elem2);
 					if(alrExist == null){
-						System.out.println("adicionado em 2 - "+ elem2.getIdBD() + " " + elem2.getId());				
+						//System.out.println("adicionado em 2 - "+ elem2.getIdBD() + " " + elem2.getId());
 						vertices.put(elem2.getId(), elem2);
 					}else{
 						elem2 = alrExist;
@@ -338,13 +411,13 @@ public class Block{
 						}
 						if(!add.isEmpty()){add=add.concat(";");}
 						add = add.concat(""+valo);
-					}					
+					}
 					aux--;
 				}
 			}
 			simlist.add(add);
 		}
-		retorno = new NameGraph(arestas, vertices);	
+		retorno = new NameGraph(arestas, vertices);
 		return retorno;
 	}
 
@@ -416,6 +489,7 @@ public class Block{
 		return null;
 	}
 
+/*
 	public static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 
 		List<List<List<String>>> dadosBDBySchemma = Util.getDataBD();
@@ -436,7 +510,7 @@ public class Block{
 			List<VertName> vertexes = aresta.getElements();
 			System.out.print("aresta "+ i++ +": ");
 			for (VertName vertice:vertexes) {
-				System.out.print(vertice.getKey()+" ");
+				System.out.print(vertice.getData()+" ");
 			}
 			System.out.println("de peso " + aresta.getWeight());
 		}
@@ -444,9 +518,10 @@ public class Block{
 		System.out.println(nome.getVertices().size() + " vertices");
 		//		System.out.println(bloco.lista.size());
 		for (Entry<Integer, VertName> entry : vertices.entrySet()){
-			System.out.println(entry.getValue().getKey() + '\t' + entry.getValue().getIdBD()); 
+			System.out.println(entry.getValue().getData() + '\t' + entry.getValue().getIdBD());
 		}
 		
 	}
+*/
 
 }

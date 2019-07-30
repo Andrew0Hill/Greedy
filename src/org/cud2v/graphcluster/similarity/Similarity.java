@@ -1,4 +1,4 @@
-package tcc.com.similarity;
+package org.cud2v.graphcluster.similarity;
 
 public class Similarity {
 	public static int distance(String a, String b) {
@@ -61,7 +61,7 @@ public class Similarity {
 	    return cost[len0 - 1];
 	}
 	
-	public static int LevenshteinDistance (String s0, String s1) {                          
+	public static int LevenshteinDistance (String s0, String s1) {
 	    int len0 = s0.length() + 1;                                                     
 	    int len1 = s1.length() + 1;                                                     
 	 
@@ -103,7 +103,7 @@ public class Similarity {
 	
 	public static float getFedit(String s1, String s2){
 		
-		float fedit = 1 - ((float) LevenshteinDistance (s1, s2)/Math.max(s1.length(), s2.length()));
+		float fedit = 1 - ((float) LevenshteinDistance (s1, s2)/ Math.max(s1.length(), s2.length()));
 		
 		return fedit;
 	}

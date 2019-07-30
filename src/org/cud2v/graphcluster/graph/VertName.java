@@ -1,21 +1,23 @@
-package tcc.com.graph;
+package org.cud2v.graphcluster.graph;
 
 import org.apache.commons.graph.Vertex;
+
+import java.util.List;
 
 public class VertName implements Vertex{
 	private static int ID = 0;//contador de vertices
 	private String name;
 	private int id;
 	private String idBD;
-	private String key;
-	private String[] tupla;
+	private List<String> data;
+	//private String[] tupla;
 
 	public VertName(String name){
 		this.id = ID++; //o mesmo id da tabela!!
 		this.name = name;
-		this.key = "";
+		this.data = null;
 		this.idBD = "";
-		this.tupla = null;
+		//this.tupla = null;
 	}
 
 	public int getId(){
@@ -24,9 +26,9 @@ public class VertName implements Vertex{
 	public String getName(){
 		return this.name;
 	}
-	public void insertKey(String key){
-		if(this.key.isEmpty()){
-			this.key = key;
+	public void insertData(List<String> data){
+		if(this.data == null){
+			this.data = data;
 		}
 	}
 	public void insertIdBD(String id){
@@ -34,17 +36,18 @@ public class VertName implements Vertex{
 			this.idBD = id;
 		}
 	}
-	public void setKey(String key){
-		this.key = key;
+	public void setData(List<String> data){
+		this.data = data;
 	}
-	public String getKey(){
-		return this.key;
+	public List<String> getData(){
+		return this.data;
 	}
+
 	public String getIdBD(){
 		return this.idBD;
 	}
 
-	public String getTupla() {
+/*	public String getTupla() {
 		String retorno = "";
 		for(int i = 2; i < tupla.length; i++){
 			if(this.tupla[i].isEmpty() || this.tupla[i]==null){
@@ -58,7 +61,7 @@ public class VertName implements Vertex{
 
 	public void setTupla(String[] strings) {
 		this.tupla = strings;
-	}
+	}*/
 	
 
 }

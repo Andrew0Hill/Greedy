@@ -1,11 +1,8 @@
-package tcc.com.graph;
+package org.cud2v.graphcluster.graph;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.graph.*;
 
 public class NameGraph {
 

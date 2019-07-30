@@ -1,20 +1,18 @@
-package tcc.com.graph;
+package org.cud2v.graphcluster.graph;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.graph.Vertex;
 
 public class Edge<E> {
 	
 	private static int ID = 0;
 	private int id;
-	private float weight;
+	private double weight;
 	private VertName elemone;
 	private VertName elemtwo;
 	List<VertName> elements = new ArrayList<VertName>();
 	
-	public Edge(VertName elemone, VertName elemtwo, float distance){
+	public Edge(VertName elemone, VertName elemtwo, double distance){
 		
 		this.id=ID++;
 		this.elemone = elemone;
@@ -26,7 +24,7 @@ public class Edge<E> {
 		
 	}
 	
-	public float getWeight(){
+	public double getWeight(){
 		return this.weight;
 	}
 	

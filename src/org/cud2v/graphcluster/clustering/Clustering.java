@@ -1,29 +1,23 @@
-package tcc.com.clustering;
+package org.cud2v.graphcluster.clustering;
+
+import org.cud2v.graphcluster.block.Block;
+import org.cud2v.graphcluster.cluster.Cluster;
+import org.cud2v.graphcluster.graph.Edge;
+import org.cud2v.graphcluster.graph.NameGraph;
+import org.cud2v.graphcluster.graph.VertName;
+import org.cud2v.graphcluster.util.Util;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-
-import tcc.com.block.Block;
-import tcc.com.cluster.Cluster;
-import tcc.com.graph.Edge;
-import tcc.com.graph.NameGraph;
-import tcc.com.graph.VertName;
-import tcc.com.util.Util;
 
 public class Clustering {
 
 	private List<Cluster> clusterList;
 	private NameGraph grafo;
-	private List<Cluster> lg; 
+	private List<Cluster> lg;
+
 
 	public Clustering(NameGraph grafo){
 		this.grafo = grafo;
@@ -70,17 +64,17 @@ public class Clustering {
 	public static float clusterAvgWithoutVert(Cluster cluster, VertName vertice){		
 		float retorno = 0;
 		for (Map.Entry<Integer, Edge> aresta : cluster.getArestas().entrySet()){
-			//		for(Edge aresta:cluster.getArestas()){
+			//		for(Edge aresta:org.cud2v.graphcluster.cluster.getArestas()){
 			if(!aresta.getValue().contains(vertice))
 				retorno += aresta.getValue().getWeight();
 		}
-		return (retorno/(cluster.getArestas().size()-1));	
+		return (retorno/(cluster.getArestas().size()-1));
 	}
 
 	public static float clusterAvg(Cluster cluster){
 		float retorno = 0;
 		for (Map.Entry<Integer, Edge> aresta : cluster.getArestas().entrySet()){
-			//		for(Edge aresta:cluster.getArestas()){
+			//		for(Edge aresta:org.cud2v.graphcluster.cluster.getArestas()){
 			retorno += aresta.getValue().getWeight();
 		}
 		return (retorno/cluster.getArestas().size());
@@ -94,7 +88,7 @@ public class Clustering {
 		float retorno = (sefullconnectado - arestas_existentes);
 
 		for (Map.Entry<Integer, Edge> aresta : cluster.getArestas().entrySet()){
-			//		for (Edge aresta:cluster.getArestas()) {
+			//		for (Edge aresta:org.cud2v.graphcluster.cluster.getArestas()) {
 			retorno += (1-aresta.getValue().getWeight());
 		}
 
@@ -145,7 +139,7 @@ public class Clustering {
 		while(copia.size() > 1){
 			VertName v = copia.remove(0);
 			for(VertName v2 : copia){
-				Edge edg = this.grafo.getEdge(v, v2); 
+				Edge edg = this.grafo.getEdge(v, v2);
 				if(edg != null){
 					retorno.put(edg.getId(), edg);
 				}
@@ -188,7 +182,7 @@ public class Clustering {
 
 		return lista;
 	}
-	
+
 	public NameGraph getGrafo() {
 		return grafo;
 	}
@@ -207,9 +201,9 @@ public class Clustering {
 
 	/**
 	 * A etapa de Split é como descrita:
-	 * 1. For each node v of C, evaluate whether splitting v out generates a better clustering.
-	 * 2. Upon finding such a node v, create a new cluster C' = {v} and conduct steps 3-4.
-	 * 3. For each remaining node v' ∈ C evaluate whether moving  v1 to C' obtains a better clustering. 
+	 * 1. For each node v of C, evaluate whether splitting v out generates a better org.cud2v.graphcluster.clustering.
+	 * 2. Upon finding such a node v, create a new org.cud2v.graphcluster.cluster C' = {v} and conduct steps 3-4.
+	 * 3. For each remaining node v' ∈ C evaluate whether moving  v1 to C' obtains a better org.cud2v.graphcluster.clustering.
 	 *    If so, move v' to C' repeat Step 3.
 	 * 4. Add C and C' to Qc if they are connected to other clusters.
 	 * @param clus Cluster a ser dividido
@@ -225,17 +219,17 @@ public class Clustering {
 
 		HashMap<Float, VertName> verticeBymedia = new HashMap<Float, VertName>();
 		List<Float> medias = new ArrayList<Float>();
-		
-		if(clus.getArestas().size() > 0){ //se possui uma aresta ou mais, o cluster pode ser dividido
-			
+
+		if(clus.getArestas().size() > 0){ //se possui uma aresta ou mais, o org.cud2v.graphcluster.cluster pode ser dividido
+
 			VertName aRetirar = null;
 			Map<Integer, VertName> conexs = null;//
 			for (Map.Entry<Integer, VertName> vert : clus.getVertices().entrySet()){
-				//calcula-se o valor da media de similaridade do cluster sem o vertice que se deseja remover
+				//calcula-se o valor da media de similaridade do org.cud2v.graphcluster.cluster sem o vertice que se deseja remover
 				float valor = clusterAvgWithoutVert(clus,vert.getValue());
 				/*
-				 * se o valor da media do cluster com o vertice for menor do que o valor sem o vertice
-				 * é procedido os passos para o split. 
+				 * se o valor da media do org.cud2v.graphcluster.cluster com o vertice for menor do que o valor sem o vertice
+				 * é procedido os passos para o split.
 				 */
 				if(valor > clus.getAvgPenalty()){
 					aRetirar = vert.getValue();
@@ -246,45 +240,45 @@ public class Clustering {
 					conexs = getVerticesConectados(vert.getValue(), clus);
 					break;
 				}
-		
+
 			}
 
 			if(aRetirar != null){//se temos vertice a ser retirado
 				boolean tem = true;
 				List<VertName> retirar = new LinkedList<VertName>();
 				retirar.add(aRetirar);
-				Cluster newClus = new Cluster(aRetirar); //cria-se um novo cluster
+				Cluster newClus = new Cluster(aRetirar); //cria-se um novo org.cud2v.graphcluster.cluster
 				clus.remove(aRetirar);
 
 				Map<Integer,Edge> edgstToNew = new HashMap<Integer, Edge>();
 
-				//procura e insere vertices que fazem arestas com o vertice aRetirar no novo cluster
+				//procura e insere vertices que fazem arestas com o vertice aRetirar no novo org.cud2v.graphcluster.cluster
 				while(tem){
 
 					VertName tirar = retirar.remove(0);
 					List<VertName> vrts = this.isVertWith(tirar);
 					for(VertName v : vrts){
-						
+
 						boolean containVertice = clus.getVertices().containsKey(v.getId());
 						if(containVertice){
-							
+
 							Edge edg = this.grafo.getEdge(v, tirar);
 							/*
-							 * adicionamos os vertices que fazem aresta com 
-							 * o vertice da variavel aRetirar no novo cluster
+							 * adicionamos os vertices que fazem aresta com
+							 * o vertice da variavel aRetirar no novo org.cud2v.graphcluster.cluster
 							 */
 							newClus.add(v);
 							retirar.add(v);
 							/*
-							 *  removemos os vertices adicionados no 
-							 *  novo cluster do seu antigo cluster.
-							 *  Ao remover um vertice de um cluster,
+							 *  removemos os vertices adicionados no
+							 *  novo org.cud2v.graphcluster.cluster do seu antigo org.cud2v.graphcluster.cluster.
+							 *  Ao remover um vertice de um org.cud2v.graphcluster.cluster,
 							 *  o metodo retira todas as arestas
 							 *  que o vertice removido faz parte.
 							 */
 							clus.remove(v);
 							edgstToNew.put(edg.getId(), edg);
-							
+
 						}
 					}
 					if(retirar.isEmpty()){
@@ -293,13 +287,13 @@ public class Clustering {
 				}
 				/*
 				 * arestas que fazem parte do grafo e que o vertice da variavel aRetirar
-				 * se encontra, são inseridos no novo cluster
+				 * se encontra, são inseridos no novo org.cud2v.graphcluster.cluster
 				 */
 				newClus.insertNewEdges(edgstToNew);
 				updateClusAvg(clus, newClus);
 				temVizinho = this.hasNeighbor(newClus);
 				/*
-				 * se o novo cluster formado possui vizinho, ele é colocado na lista
+				 * se o novo org.cud2v.graphcluster.cluster formado possui vizinho, ele é colocado na lista
 				 * que será iterada para sofrer novas operações. Caso contrário
 				 * colocamos na lista de clusters que sera retornada no fim do algoritmo
 				 * de agrupamento
@@ -311,8 +305,8 @@ public class Clustering {
 				}
 				changed = true;
 			}
-			
-			else if(conexs != null){ 
+
+			else if(conexs != null){
 				Map<Integer,Edge> arestas = arestasBtwList(conexs);
 				Cluster newClus = new Cluster(conexs, arestas);
 				clus.removeAll(conexs);
@@ -333,17 +327,17 @@ public class Clustering {
 				news.add(clus);
 			}
 		}
-		
+
 		boolean add = copy.addAll(news);
 		if(changed)
 			this.setClusterList(copy);
 		return changed;
 	}
-	
+
 	/**
 	 * Como definido no artigo do Srivastava:
-	 * 1. For each neighbor cluster C' of C, evaluate whether merging them generates a better cluster. 
-	 * 2. Upon finding a better clustering, (1) merge C with C', (2) add C U C' generates a better clustering. to Qc, 
+	 * 1. For each neighbor org.cud2v.graphcluster.cluster C' of C, evaluate whether merging them generates a better org.cud2v.graphcluster.cluster.
+	 * 2. Upon finding a better org.cud2v.graphcluster.clustering, (1) merge C with C', (2) add C U C' generates a better org.cud2v.graphcluster.clustering. to Qc,
 	 * and (3) remove C' from Qc if C' ∈ Qc.
 	 * @param clus Cluster a ser verificado com a lista quais são seus vizinhos
 	 * @return retorna true se tiver havido alteração em algum Cluster.
@@ -351,7 +345,7 @@ public class Clustering {
 	public boolean merge(Cluster clus){
 		boolean changed = false;
 		if(this.clusterList.size() > 0){
-			
+
 			Map<Integer, VertName> verts;
 			Map<Integer, Edge> eds;
 
@@ -360,22 +354,22 @@ public class Clustering {
 			List<Float> medias = new ArrayList<Float>();
 
 			for (int j = 0; (j < clusterList.size()) ; j++) {
-				
+
 				eds = new HashMap<Integer, Edge>(clus.getArestas());
 				verts = new HashMap<Integer, VertName>(clus.getVertices());
-				
-				//inicializa o novo cluster já com todos os vértices e arestas do cluster 1
+
+				//inicializa o novo org.cud2v.graphcluster.cluster já com todos os vértices e arestas do org.cud2v.graphcluster.cluster 1
 				Cluster newClus = new Cluster(verts, eds, clus.getIdKeys());
 				Cluster clus2 = this.clusterList.get(j);
-				
+
 				boolean vizinhos = rNeighbor(clus, clus2);
 				// se clusters são vizinhos
 				if(vizinhos){
-					//adiciona ao novo cluster todos os vértices do cluster 2
+					//adiciona ao novo org.cud2v.graphcluster.cluster todos os vértices do org.cud2v.graphcluster.cluster 2
 					newClus.InsertVertices(clus2.getVertices());
 					Map<Integer,Edge> edgstToNew = new HashMap<Integer, Edge>();
 
-					for (Entry<Integer, VertName> vert : clus2.getVertices().entrySet()){					
+					for (Entry<Integer, VertName> vert : clus2.getVertices().entrySet()){
 						for(Entry<Integer, VertName> vertc : newClus.getVertices().entrySet()){
 							//se existe aresta entre estes dois vertices, adicionar a lista
 							if(this.grafo.existEdge(vertc.getValue(), vert.getValue())){
@@ -384,12 +378,12 @@ public class Clustering {
 									edgstToNew.put(edg.getId(), edg);
 								}
 							}
-							
+
 						}
 					}
 					/*
 					 * lista de novos vertices, que antes estava fora de ambos os clusters (intracluster)
-					 * agora é inserida no novo cluster, resultado do merge
+					 * agora é inserida no novo org.cud2v.graphcluster.cluster, resultado do merge
 					 */
 					newClus.insertNewEdges(edgstToNew);
 					if(newClus.getArestas().size()>0)
@@ -399,10 +393,10 @@ public class Clustering {
 
 					if(!candidatos.containsKey(newClus.getAvgPenalty())){
 						candidatos.put(newClus.getAvgPenalty(), newClus);
-						medias.add(newClus.getAvgPenalty());					
+						medias.add(newClus.getAvgPenalty());
 						pai2.put(newClus, clus2);
 					}
-					
+
 				}
 			}
 			if(!medias.isEmpty()){
@@ -410,7 +404,7 @@ public class Clustering {
 				Cluster vencedor = candidatos.get(menor);
 				Cluster clu2Rmv = pai2.get(vencedor);
 				if((vencedor.getAvgPenalty() > clu2Rmv.getAvgPenalty() || clu2Rmv.getAvgPenalty() == 0)){
-					//remover o cluster c2
+					//remover o org.cud2v.graphcluster.cluster c2
 					//e adicionar o vencedor
 					System.out.println("clusters antes de remover");
 					for(int j = 0; j < this.clusterList.size();j++){
@@ -420,9 +414,9 @@ public class Clustering {
 
 					this.clusterList.remove(clu2Rmv);
 					changed = true;
-					System.out.println("removido cluster de ID: "+clu2Rmv.getId_cluster());
+					System.out.println("removido org.cud2v.graphcluster.cluster de ID: "+clu2Rmv.getId_cluster());
 					this.clusterList.add(vencedor);
-					System.out.println("adicionando cluster de ID: "+vencedor.getId_cluster());
+					System.out.println("adicionando org.cud2v.graphcluster.cluster de ID: "+vencedor.getId_cluster());
 
 					System.out.println("clusters apos adicionar " + vencedor.getId_cluster());
 					for(int j = 0; j < this.clusterList.size();j++){
@@ -435,16 +429,17 @@ public class Clustering {
 		return changed;
 	}
 	/**
-	 * 1. For each neighbor cluster C' of  C, do Steps 2-3. 
-	 * 2. For each node v' ∈ C that is connected to C' and for each v' ∈ C' connected to C, 
-	 *    evaluate whether moving v to the other cluster generates a better clustering. 
-	 *    Upon finding such a node v, move it to the other cluster. 
+	 * 1. For each neighbor org.cud2v.graphcluster.cluster C' of  C, do Steps 2-3.
+	 * 2. For each node v' ∈ C that is connected to C' and for each v' ∈ C' connected to C,
+	 *    evaluate whether moving v to the other org.cud2v.graphcluster.cluster generates a better org.cud2v.graphcluster.clustering.
+	 *    Upon finding such a node v, move it to the other org.cud2v.graphcluster.cluster.
 	 * 3. Repeat Step 2 until there is no more node to move. Then, (1) add the two new clusters to Qc,
 	 *    and (2) dequeue C' if C'∈Qc.
 	 * @param clus Cluster a ser verificado com a lista quais são seus vizinhos.
 	 * @return retorna true se tiver havido alteração em algum Cluster.
 	 */
-	public boolean move(Cluster clus){System.out.println("move");
+	public boolean move(Cluster clus){
+        System.out.println("move");
 	boolean changed = false;
 
 	if(clus.getId_cluster() == 3){
@@ -460,7 +455,7 @@ public class Clustering {
 
 
 		Map<Integer,Cluster> pais2 = new HashMap<Integer,Cluster>();
-		Map<Float,List<Cluster>> filhos = new HashMap<Float,List<Cluster>>();
+		Map<Float, List<Cluster>> filhos = new HashMap<Float, List<Cluster>>();
 
 		Map<Float,Cluster> candidatos = new HashMap<Float,Cluster>();
 		List<Float> medias = new ArrayList<Float>();
@@ -533,7 +528,7 @@ public class Clustering {
 
 				}
 				if(atualizou){
-					float media = (newClus1.getAvgPenalty()+newClus2.getAvgPenalty())/2; 
+					float media = (newClus1.getAvgPenalty()+newClus2.getAvgPenalty())/2;
 					medias.add(media);
 
 					sons.add(newClus1);
@@ -562,10 +557,10 @@ public class Clustering {
 			Cluster clus2 = pais2.get(sons.get(0).getId_cluster());
 
 			this.clusterList.remove(clus2);
-			if(sons.get(1).getVertices().size()>0){				
+			if(sons.get(1).getVertices().size()>0){
 				this.clusterList.add(sons.get(1));
 			}
-			if(sons.get(0).getVertices().size()>0){		
+			if(sons.get(0).getVertices().size()>0){
 				this.clusterList.add(sons.get(0));
 			}
 			changed = true;
@@ -581,18 +576,18 @@ public class Clustering {
 		System.out.println();
 	}
 	/*
-		Dado um cluster C pertencente a Qc, consideramos movermos alguns dos nós para outro cluster 
-		ou mover nós de outros clusters para C, poderíamos gerar um cluster melhor. Novamente, 
-		consideramos nós se movendo entre dois clusters para que o algoritmo termine em tempo 
+		Dado um org.cud2v.graphcluster.cluster C pertencente a Qc, consideramos movermos alguns dos nós para outro org.cud2v.graphcluster.cluster
+		ou mover nós de outros clusters para C, poderíamos gerar um org.cud2v.graphcluster.cluster melhor. Novamente,
+		consideramos nós se movendo entre dois clusters para que o algoritmo termine em tempo
 		polinomial. O algoritmo MOVE é descrito:
 
-			1. Para cada vizinho C’ do cluster C, faça os passos 2-3.
-			2. Para cada nó v pertencente a C que é conectado com C’ e 
-			para cada v pertencente a C’ conectado a C, avalie se movendo v 
-			para outro cluster gera um cluster melhor. Ao encontrar um nó v 
-			que satisfaça, mova-o para o outro cluster.
-			3. Repita 2 até que não haja mais nós para serem movidos. 
-			Então (1) adicione os dois novos clusters a fila Qc, e (2) tire 
+			1. Para cada vizinho C’ do org.cud2v.graphcluster.cluster C, faça os passos 2-3.
+			2. Para cada nó v pertencente a C que é conectado com C’ e
+			para cada v pertencente a C’ conectado a C, avalie se movendo v
+			para outro org.cud2v.graphcluster.cluster gera um org.cud2v.graphcluster.cluster melhor. Ao encontrar um nó v
+			que satisfaça, mova-o para o outro org.cud2v.graphcluster.cluster.
+			3. Repita 2 até que não haja mais nós para serem movidos.
+			Então (1) adicione os dois novos clusters a fila Qc, e (2) tire
 			da fila C’ se C’ estiver na fila.
 	 */
 	return changed;
@@ -625,11 +620,12 @@ public class Clustering {
 	}
 
 
-	public static void main(String[] args) throws InstantiationException, 
-	IllegalAccessException, ClassNotFoundException, SQLException, IOException {
-		
+/*
+	public static void main(String[] args) throws InstantiationException,
+            IllegalAccessException, ClassNotFoundException, SQLException, IOException {
+
 		boolean newDatas;
-		
+
 		List<Float> medias = new ArrayList<Float>();
 		List<String> lista = new ArrayList<String>();
 
@@ -639,63 +635,66 @@ public class Clustering {
 		//List<List<String>> dadosBD = dadosBDBySchemma.get(0);
 		//dadosBD.addAll(dadosBDBySchemma.get(1));
 
-		List<List<String>> dadosBD = Util.getDataFile(new String[]{"schema1.csv","schema2.csv"});
+		List<List<String>> dadosBD = Util.getDataFile(new String[]{"schema1.csv","schema2.csv"},";");
 		Block bloco = new Block(lista);
-		bloco.lista = bloco.genKey(dadosBD); 
+		bloco.lista = bloco.genKey(dadosBD);
 		//lista vai guardar key+'\t'+id+'\t'+keyCompare onde id eh idBD, key usa tuudo
 		//da tupla e keyCompare utiliza apenas author,title,year,class
 
 		NameGraph nome = bloco.getInitialGraph(10);
 
-		Clustering clustering = new Clustering(nome);
+		Clustering org.cud2v.graphcluster.clustering = new Clustering(nome);
 
 		Map<Integer,VertName> vertices = new HashMap<Integer, VertName>();
-		vertices.putAll(clustering.grafo.getVertices());
+		vertices.putAll(org.cud2v.graphcluster.clustering.grafo.getVertices());
 		Map<Integer,Edge> arestas = new HashMap<Integer, Edge>();
-		arestas.putAll(clustering.grafo.getEdges());
+		arestas.putAll(org.cud2v.graphcluster.clustering.grafo.getEdges());
 		//		int i = 1;
 		Cluster clus = new Cluster(vertices, arestas, bloco.IdKey);
-		clustering.getClusterList().add(clus);
-		clus.setAvgPenalty(clustering.clusterAvg(clus));
+		org.cud2v.graphcluster.clustering.getClusterList().add(clus);
+		clus.setAvgPenalty(org.cud2v.graphcluster.clustering.clusterAvg(clus));
 		int iteration = 0;
 
-		while(!clustering.getClusterList().isEmpty()){
+		while(!org.cud2v.graphcluster.clustering.getClusterList().isEmpty()){
 			boolean changed = false;
 
-			Cluster clut = clustering.getClusterList().remove(0);
+			Cluster clut = org.cud2v.graphcluster.clustering.getClusterList().remove(0);
 
-			changed = clustering.merge(clut);
-			if(!changed)	
-				changed = clustering.split(clut);
+			changed = org.cud2v.graphcluster.clustering.merge(clut);
 			if(!changed)
-				changed = clustering.move(clut);
+				changed = org.cud2v.graphcluster.clustering.split(clut);
+			if(!changed)
+				changed = org.cud2v.graphcluster.clustering.move(clut);
 
 			if(!changed){
-				System.out.println("retirando " + clut.getId_cluster()); 
-				clustering.lg.add(clut);
+				System.out.println("retirando " + clut.getId_cluster());
+				org.cud2v.graphcluster.clustering.lg.add(clut);
 			}
 		}
-		System.out.println(clustering.getClusterList().size());
+		System.out.println(org.cud2v.graphcluster.clustering.getClusterList().size());
 
-		
-		/*
+
+		*/
+/*
 		 * atualizando arquivo .xls com as entrandas e guardando em qual
 		 * agrupamento ela se encontra
-		 */
-		Map<String,Integer> mapClus = new HashMap<String, Integer>();
+		 *//*
+
+		Map<String, Integer> mapClus = new HashMap<String, Integer>();
 		int idClus = 0;
-		for(int i = 0; i < clustering.lg.size(); i++){
-			idClus = clustering.lg.get(i).getId_cluster();
-			for (Map.Entry<Integer, VertName> entry : clustering.lg.get(i).getVertices().entrySet()){
-				mapClus.put(entry.getValue().getIdBD(), idClus); 
+		for(int i = 0; i < org.cud2v.graphcluster.clustering.lg.size(); i++){
+			idClus = org.cud2v.graphcluster.clustering.lg.get(i).getId_cluster();
+			for (Map.Entry<Integer, VertName> entry : org.cud2v.graphcluster.clustering.lg.get(i).getVertices().entrySet()){
+				mapClus.put(entry.getValue().getIdBD(), idClus);
 			}
 		}
-		
+
 		Util.updateClusterXls(mapClus);
 		Util.updateClusterXls2(mapClus);
-		
-		Util.writeGraph(clustering);
+
+		Util.writeGraph(org.cud2v.graphcluster.clustering);
 		//apos escrever no arquivo, atualizar no banco
-//		Util.updateDatabase(clustering.grafo);
-	}
+//		Util.updateDatabase(org.cud2v.graphcluster.clustering.grafo);
+	}*/
 }
+

@@ -1,8 +1,6 @@
-package tcc.com.similarity;
+package org.cud2v.graphcluster.similarity;
 
 import java.util.Stack;
-
-import org.apache.hadoop.hdfs.web.resources.GetOpParam;
 
 public class SmithWaterman {
 	private String one, two;

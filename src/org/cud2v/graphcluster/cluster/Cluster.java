@@ -1,25 +1,13 @@
-package tcc.com.cluster;
+package org.cud2v.graphcluster.cluster;
 
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import org.cud2v.graphcluster.graph.Edge;
+import org.cud2v.graphcluster.graph.VertName;
+
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-
-
-
-import tcc.com.block.Block;
-import tcc.com.graph.Edge;
-import tcc.com.graph.NameGraph;
-import tcc.com.graph.VertName;
-import tcc.com.similarity.Similarity;
-import tcc.com.util.Util;
 
 public class Cluster {
 
@@ -31,7 +19,7 @@ public class Cluster {
 	String idsBd;
 	float avgPenalty;
 
-	//idKeys é id<tab>chave
+	//idKeys ï¿½ id<tab>chave
 	public Cluster(Map<Integer,VertName> records, Map<Integer,Edge> arestas, List<String> idKeys){
 		this.records = records;
 		this.arestas = arestas;
@@ -60,7 +48,7 @@ public class Cluster {
 			retorno[i++] = aresta.getValue();
 		}
 
-		return retorno;		
+		return retorno;
 	}
 	public boolean removeAll(Map<Integer, VertName> verts){
 		boolean retorno = false;
@@ -108,7 +96,7 @@ public class Cluster {
 
 		return false;
 	}
-	public boolean insertNewEdges(Map<Integer,Edge> arestasToInsert){//ACHO QUE TA ERRADO, ACHO QUE AQUI DEVE SER APENAS SE HÁ VERTICE QUE TEM
+	public boolean insertNewEdges(Map<Integer,Edge> arestasToInsert){//ACHO QUE TA ERRADO, ACHO QUE AQUI DEVE SER APENAS SE Hï¿½ VERTICE QUE TEM
 		//ARESTAS COM ELE, SE TIVER, ADICIONAR AQUI!!
 		float valor = 0;
 		boolean retorno = false;
@@ -129,7 +117,7 @@ public class Cluster {
 		return retorno;
 	}
 
-	public boolean insertNewEdge(Edge arestaToInsert){//ACHO QUE TA ERRADO, ACHO QUE AQUI DEVE SER APENAS SE HÁ VERTICE QUE TEM
+	public boolean insertNewEdge(Edge arestaToInsert){//ACHO QUE TA ERRADO, ACHO QUE AQUI DEVE SER APENAS SE Hï¿½ VERTICE QUE TEM
 		//ARESTAS COM ELE, SE TIVER, ADICIONAR AQUI!!
 		float valor = 0;
 		boolean retorno = false;

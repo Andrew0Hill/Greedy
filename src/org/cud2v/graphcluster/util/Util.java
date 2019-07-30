@@ -1,41 +1,26 @@
-package tcc.com.util;
+package org.cud2v.graphcluster.util;
 
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
-import tcc.com.cluster.Cluster;
-import tcc.com.clustering.Clustering;
-import tcc.com.graph.Edge;
-import tcc.com.graph.NameGraph;
-import tcc.com.graph.VertName;
-
-import javax.lang.model.type.ArrayType;
+import java.io.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
 	//script q le um xml especifico
-	static void xmlToXls() throws IOException, SQLException, ClassNotFoundException{
+	static void xmlToXls() throws IOException, SQLException, ClassNotFoundException {
 		HSSFWorkbook workbook2 = new HSSFWorkbook();
 		HSSFSheet sheet = workbook2.createSheet("sample");
 
@@ -244,7 +229,7 @@ public class Util {
 		insert(lista);
 	}
 
-	static void genXls() throws IOException, SQLException, ClassNotFoundException{
+	static void genXls() throws IOException, SQLException, ClassNotFoundException {
 
 		List<String[]> lista = new ArrayList<String[]>();
 		BufferedReader reader = new BufferedReader(new FileReader("cora2.txt"));
@@ -290,7 +275,7 @@ public class Util {
 		out.close();
 	}
 
-	static void insert(List<String[]> lista) throws SQLException, ClassNotFoundException{
+	static void insert(List<String[]> lista) throws SQLException, ClassNotFoundException {
 
 		// create a mysql database connection
 		String myDriver = "com.mysql.jdbc.Driver";
@@ -323,16 +308,21 @@ public class Util {
 		conn.close();
 	}
 
-	public static List<List<String>> getDataFile(String[] filenames) throws FileNotFoundException, IOException{
+	public static List<List<String>> getDataFile(String[] filenames,String sep) throws FileNotFoundException, IOException {
 		List<List<String>> data_file = new ArrayList<List<String>>();
 		for (String filename: filenames) {
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
 			// Skip the header of each file.
-			reader.readLine();
+			//reader.readLine();
 			// Start reading here.
 			String line = reader.readLine();
 			while (line != null) {
-				List<String> values_row = Arrays.asList(line.split(";"));
+				List<String> values_row = Arrays.asList(line.split(sep));
+
+				for(int i=0; i < values_row.size(); i++){
+					values_row.set(i,values_row.get(i).replace("\"",""));
+				}
+
 				data_file.add(values_row);
 				line = reader.readLine();
 			}
@@ -340,7 +330,7 @@ public class Util {
 		}
 		return data_file;
 	}
-	public static List<List<List<String>>> getDataBD() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
+	public static List<List<List<String>>> getDataBD() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		String author,volume,title,institution,venue,address,publisher,year,pages,editor,note,month,classe;
 		int cluster, id;
 		List<String> lista;
@@ -353,14 +343,14 @@ public class Util {
 		Connection con = DriverManager.getConnection("jdbc:mysql://localhost/tcc_schema", "root", "");
 
 		java.sql.Statement st = con.createStatement();
-		//		String sql = ("SELECT * FROM book where cluster = 0");
-		String sql = ("SELECT * FROM book where cluster = 0 and id > 99918531");//and id < 16150   in ('16104','16110','16109','16121','16136','16140')
+		//		String sql = ("SELECT * FROM book where org.cud2v.graphcluster.cluster = 0");
+		String sql = ("SELECT * FROM book where org.cud2v.graphcluster.cluster = 0 and id > 99918531");//and id < 16150   in ('16104','16110','16109','16121','16136','16140')
 		java.sql.ResultSet rs = st.executeQuery(sql);
 		while(rs.next()) { 
 			lista = new ArrayList<String>();
 			//		 int id = rs.getInt("first_column_name"); 
 			//		 String str1 = rs.getString("second_column_name");
-			cluster = rs.getInt("cluster");
+			cluster = rs.getInt("org/cud2v/graphcluster/cluster");
 			lista.add(String.valueOf(cluster));
 			id = rs.getInt("id");
 			lista.add(String.valueOf(id));
@@ -400,15 +390,15 @@ public class Util {
 
 		con = DriverManager.getConnection("jdbc:mysql://localhost/tcc_schema2", "root", "");
 		st = con.createStatement();
-		//		String sql = ("SELECT * FROM book where cluster = 0");
-		sql = ("SELECT * FROM book where cluster = 0 and id in(18479,18482,18483,18461,18464,18465,18469,18470,18471)");//and id < 18531 and id in(18479,18482,18483,18461,18464,18465,18469,18470,18471)
+		//		String sql = ("SELECT * FROM book where org.cud2v.graphcluster.cluster = 0");
+		sql = ("SELECT * FROM book where org.cud2v.graphcluster.cluster = 0 and id in(18479,18482,18483,18461,18464,18465,18469,18470,18471)");//and id < 18531 and id in(18479,18482,18483,18461,18464,18465,18469,18470,18471)
 		rs = st.executeQuery(sql);
 
 		while(rs.next()) { 
 			lista = new ArrayList<String>();
 			//		 int id = rs.getInt("first_column_name"); 
 			//		 String str1 = rs.getString("second_column_name");
-			cluster = rs.getInt("cluster");
+			cluster = rs.getInt("org/cud2v/graphcluster/cluster");
 			lista.add(String.valueOf(cluster));
 			id = rs.getInt("id");
 			lista.add(String.valueOf(id));
@@ -452,7 +442,7 @@ public class Util {
 		return listareturn;
 	}
 
-	public static void updateClusterXls(Map<String, Integer> cluster_n) throws IOException{
+	public static void updateClusterXls(Map<String, Integer> cluster_n) throws IOException {
 		//Read the spreadsheet that needs to be updated
 		FileInputStream input_document = new FileInputStream(new File("schema1.xls"));
 		//Access the workbook
@@ -473,7 +463,8 @@ public class Util {
 				String id = String.valueOf((int) cell2.getNumericCellValue());
 				if(cluster_n.get(id) != null){
 					newClusId = cluster_n.get(id);
-					if(newClusId == 35){System.out.println("aa");}
+					if(newClusId == 35){
+                        System.out.println("aa");}
 					cell.setCellValue(newClusId);//atualizando o numero do clustes
 				}
 
@@ -490,7 +481,7 @@ public class Util {
 
 	}
 
-	public static void updateClusterXls2(Map<String, Integer> cluster_n) throws IOException{
+	public static void updateClusterXls2(Map<String, Integer> cluster_n) throws IOException {
 		//Read the spreadsheet that needs to be updated
 		FileInputStream input_document = new FileInputStream(new File("schema2.xls"));
 		//Access the workbook
@@ -511,7 +502,8 @@ public class Util {
 				String id = String.valueOf((int) cell2.getNumericCellValue());
 				if(cluster_n.get(id) != null){
 					newClusId = cluster_n.get(id);
-					if(newClusId == 35){System.out.println("aa");}
+					if(newClusId == 35){
+                        System.out.println("aa");}
 					cell.setCellValue(newClusId);//atualizando o numero do clustes
 				}
 
@@ -541,13 +533,13 @@ public class Util {
 		return retorno;
 	}
 
-	public static void writeGraph(Clustering clustering) throws IOException {
-		NameGraph grafo = clustering.getGrafo();
+/*	public static void writeGraph(Clustering org.cud2v.graphcluster.clustering) throws IOException {
+		NameGraph grafo = org.cud2v.graphcluster.clustering.getGrafo();
 		Map<Integer,Edge> edges = grafo.getEdges();
 		Map<Integer,VertName> verts = grafo.getVertices();
-		List<Cluster> clusters = clustering.getLg();
+		List<Cluster> clusters = org.cud2v.graphcluster.clustering.getLg();
 
-		File file = new File("graph.csv");
+		File file = new File("org.cud2v.graphcluster.graph.csv");
 
 		// se arquivo nao existe, criar
 		if (!file.exists()) {
@@ -561,7 +553,7 @@ public class Util {
 
 		for(Map.Entry<Integer, VertName> vert : verts.entrySet()){
 			VertName vertex = vert.getValue();
-			bw.write(vertex.getId()+";"+vertex.getTupla()+";"+vertex.getKey()+";"+vertex.getName()+'\n');
+			bw.write(vertex.getId()+";"+vertex.getTupla()+";"+vertex.getData()+";"+vertex.getName()+'\n');
 		}
 
 		bw.write("EdgeID;VertexID1;VertexID2;Similarity"+'\n');
@@ -596,7 +588,7 @@ public class Util {
 
 		System.out.println("Grafo Armazenado");
 
-	}
+	}*/
 
 	//	List<String> genIDKeys(List<VertName> vertices){
 	//		
