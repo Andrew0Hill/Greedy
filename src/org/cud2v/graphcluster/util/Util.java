@@ -308,9 +308,11 @@ public class Util {
 		conn.close();
 	}
 
-	public static List<List<String>> getDataFile(String[] filenames,String sep) throws FileNotFoundException, IOException {
-		List<List<String>> data_file = new ArrayList<List<String>>();
+	public static List<List<List<String>>> getDataFile(String[] filenames,String sep) throws FileNotFoundException, IOException {
+		List<List<List<String>>> data_file_list = new ArrayList<>();
+
 		for (String filename: filenames) {
+			List<List<String>> data_file = new ArrayList<List<String>>();
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
 			// Skip the header of each file.
 			//reader.readLine();
@@ -327,8 +329,9 @@ public class Util {
 				line = reader.readLine();
 			}
 			reader.close();
+			data_file_list.add(data_file);
 		}
-		return data_file;
+		return data_file_list;
 	}
 	public static List<List<List<String>>> getDataBD() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		String author,volume,title,institution,venue,address,publisher,year,pages,editor,note,month,classe;

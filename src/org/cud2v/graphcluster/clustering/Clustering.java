@@ -71,13 +71,20 @@ public class Clustering {
 		return (retorno/(cluster.getArestas().size()-1));
 	}
 
+	private static int max(int l, int r){
+		if(l > r){
+			return l;
+		}else{
+			return r;
+		}
+	}
 	public static float clusterAvg(Cluster cluster){
 		float retorno = 0;
 		for (Map.Entry<Integer, Edge> aresta : cluster.getArestas().entrySet()){
 			//		for(Edge aresta:org.cud2v.graphcluster.cluster.getArestas()){
 			retorno += aresta.getValue().getWeight();
 		}
-		return (retorno/cluster.getArestas().size());
+		return (retorno/max(1,cluster.getArestas().size()));
 	}
 
 	public static float clusterPenalty(Cluster cluster){
@@ -344,6 +351,7 @@ public class Clustering {
 	 **/
 	public boolean merge(Cluster clus){
 		boolean changed = false;
+		// If the cluster is disconnected, we should not merge it. (Just skip immediately)
 		if(this.clusterList.size() > 0){
 
 			Map<Integer, VertName> verts;
@@ -442,9 +450,9 @@ public class Clustering {
         System.out.println("move");
 	boolean changed = false;
 
-	if(clus.getId_cluster() == 3){
+/*	if(clus.getId_cluster() == 3){
 		System.out.println("esse da bronca");
-	}
+	}*/
 
 	if(this.clusterList.size() > 0){
 

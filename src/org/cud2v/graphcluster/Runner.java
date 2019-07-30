@@ -19,7 +19,7 @@ public class Runner {
         // Read in the file here.
         String separator = ",";
         List<List<String>> data;
-        data = Util.getDataFile(new String[]{"starbucks_initial.csv"}, separator);
+        data = Util.getDataFile(new String[]{"starbucks_initial.csv"}, separator).get(0);
 
         Block block = new Block();
         block.lista = data;
@@ -59,35 +59,23 @@ public class Runner {
         System.out.println("Initial Clustering Finished");
 
         // Now we add the incremental clustering data.
-        List<List<String>> increment_data = Util.getDataFile(new String[]{"starbucks_increment.csv"}, ",");
+        String[] inc_files = {"starbucks/sbc_inc_1.csv", "starbucks/sbc_inc_2.csv", "starbucks/sbc_inc_3.csv", "starbucks/sbc_inc_4.csv"};
+        List<List<List<String>>> increment_data = Util.getDataFile(inc_files, ",");
 
-        int inc_idc = 0;
+        for (List<List<String>> increment : increment_data) {
 
-        while (inc_idc < increment_data.size()) {
-            List<List<String>> increment_list = new ArrayList<>();
-            String cur_increment = increment_data.get(inc_idc).get(0);
-            String inc_plc = cur_increment;
-            System.out.println("Processing Increment: " + inc_plc);
-            // Iterate over the rows that are the same increment as this row.
-            while (cur_increment.equals(inc_plc) && inc_idc < increment_data.size()) {
-                // Add this row to the incremental subset
-                increment_list.add(increment_data.get(inc_idc));
-                // Increment the index by one.
-                inc_idc++;
-                // Get the increment string for the next row.
-                if (inc_idc < increment_data.size())
-                    inc_plc = increment_data.get(inc_idc).get(0);
-
-            }
-            System.out.println("Increment has " + increment_list.size() + " rows.");
+            System.out.println("Increment has " + increment.size() + " rows.");
 
             // Run incremental update clustering on this increment.
 
             // 1. Get connected component for update.
-
+            // First calculate similarity between all existing nodes and the new nodes.
+            NameGraph orig_graph = clustering.getGrafo();
+            Block.getConnectedComponentClusters(clustering,increment);
             // 2. Get clusters that participate in the connected components
 
             // 3. Run clustering on each cluster, along with the singleton clusters from the new data.
         }
+        System.out.println("Done");
     }
 }

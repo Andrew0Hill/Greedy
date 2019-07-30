@@ -40,6 +40,10 @@ public class Cluster {
 		this.id_cluster = ID++;
 		this.avgPenalty = 0;
 	}
+
+	public Map<Integer, VertName> getRecords() {
+		return records;
+	}
 	public Edge[] toArray(){
 		Edge[] retorno = new Edge[this.arestas.size()];
 		//TEM QUE ITERAR

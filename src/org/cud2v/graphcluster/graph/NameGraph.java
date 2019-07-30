@@ -46,7 +46,7 @@ public class NameGraph {
 		
 	}
 
-	public Map getVertices() {
+	public Map<Integer,VertName> getVertices() {
 		return vertexes;
 	}
 
