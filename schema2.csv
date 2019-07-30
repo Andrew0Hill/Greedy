@@ -1,4 +1,4 @@
-cluster;id;author;volume;title;institution;venue;address;publisher;year;pages;editor;note;month;class
+org.cud2v.graphcluster.cluster;id;author;volume;title;institution;venue;address;publisher;year;pages;editor;note;month;class
 0;18461;" M Ahlskog J Paloheimo H Stubb P Dyreklev M Fahlman O ";" 76 ";" Inganas and MR ";;;;;1994;893;;;;"ahlskog1994a  "
 0;18464;" M Ahlskog J Paloheimo H Stubb P Dyreklev M Fahlman O Inganas and MR Andersson";" 76 ";;;;;;1994;"893 ";;;;"ahlskog1994a  "
 0;18465;" M Ahlskog J Paloheimo H Stubb P Dyreklev M Fahlman O </au Inganas and MR Andersson";" 76 ";;;;;;1994;"893 ";;;;"ahlskog1994a  "
