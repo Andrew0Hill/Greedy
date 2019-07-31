@@ -341,7 +341,51 @@ public class Block{
 		// Holds the set of connected clusters to run the clustering on, which includes the
 		// new singleton clusters as well as any directly connected clusters.
 		HashSet<Cluster> connected_clusts = new HashSet<>();
-		// Iterate the new vertices and for each one, compute the similarity between that vertex and all vertices in
+
+		//ArrayList<VertName> new_verts = new ArrayList<>();
+		// Parse all incremental vertices from string.
+		for(List<String> row : increment){
+			String name = row.get(1);
+			VertName v = new VertName(name);
+			v.insertIdBD(name);
+			v.setData(row);
+			new_vertices.put(v.getId(),v);
+		}
+		// Iterate each of the new vertices.
+		// We need to calculate the similarities between both the existing vertices, and the new set.
+		ArrayList<VertName> new_vert_list = new ArrayList<>(new_vertices.values());
+		for(int i = 0; i < new_vert_list.size(); ++i){
+			// Get reference to the current vertex
+			VertName cur_v = new_vert_list.get(i);
+			// Make a singleton cluster for the new vertex.
+			Cluster cur_clust = new Cluster(cur_v);
+			connected_clusts.add(cur_clust);
+			// Iterate all of the existing clusters to find the connected component clusters for this vertex.
+			for(Cluster clust : current_clust.getLg()){
+				for(VertName clust_vert : clust.getVertices().values()) {
+					double siml = similarity(cur_v.getData(), clust_vert.getData());
+					// If similarity is above threshold, make a new edge.
+					if (siml > 0.75) {
+						// Make a new edge in the graph.
+						Edge<Object> new_edge = new Edge<>(clust_vert, cur_v, siml);
+						new_edges.put(new_edge.getId(), new_edge);
+						cur_clust.getArestas().put(new_edge.getId(), new_edge);
+						connected_clusts.add(clust);
+					}
+				}
+			}
+			// Iterate all of the other new vertices being added in this increment to calculate the similarities
+			for(int j = i+1; j < new_vert_list.size(); ++j){
+				VertName nb_v = new_vert_list.get(j);
+				double siml = similarity(nb_v.getData(),cur_v.getData());
+				if(siml > 0.75 && !existEdge(new_edges,nb_v,cur_v)){
+					Edge<Object> new_edge = new Edge<>(nb_v,cur_v,siml);
+					new_edges.put(new_edge.getId(),new_edge);
+					cur_clust.getArestas().put(new_edge.getId(),new_edge);
+				}
+			}
+		}
+/*		// Iterate the new vertices and for each one, compute the similarity between that vertex and all vertices in
 		// the existing graph.
 		for(List<String> row : increment){
 			// Get the ID for this row, and make a new vertex for it.
@@ -374,13 +418,23 @@ public class Block{
 					}
 				}
 			}
+
+			// Iterate each cluster to compute the similarity between the new elements
+			for(int i = 0; i < )
 			new_clust.setAvgPenalty(current_clust.clusterAvg(new_clust));
-		}
+		}*/
 
 		for(Cluster c : connected_clusts){
 			current_clust.getLg().remove(c);
 			current_clust.getClusterList().add(c);
 		}
+
+		existing_verts.putAll(new_vertices);
+		existing_edges.putAll(new_edges);
+
+		NameGraph updated_graph = new NameGraph(existing_edges,existing_verts);
+		// Update the graph.
+		current_clust.setGrafo(updated_graph);
 
 		while (!current_clust.getClusterList().isEmpty()) {
 			boolean changed = false;
@@ -398,13 +452,6 @@ public class Block{
 				current_clust.getLg().add(clut);
 			}
 		}
-
-		existing_verts.putAll(new_vertices);
-		existing_edges.putAll(new_edges);
-
-		NameGraph updated_graph = new NameGraph(existing_edges,existing_verts);
-		// Update the graph.
-		current_clust.setGrafo(orig_graph);
 
 		return updated_graph;
 	}
