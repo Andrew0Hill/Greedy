@@ -70,12 +70,15 @@ public class Runner {
 
             // 1. Get connected component for update.
             // First calculate similarity between all existing nodes and the new nodes.
-            NameGraph orig_graph = clustering.getGrafo();
             Block.getConnectedComponentClusters(clustering,increment);
+            clustering.printClustering();
             // 2. Get clusters that participate in the connected components
 
             // 3. Run clustering on each cluster, along with the singleton clusters from the new data.
         }
+
+        // Print out the final cluster assignment
+        clustering.printClustering();
         System.out.println("Done");
     }
 }

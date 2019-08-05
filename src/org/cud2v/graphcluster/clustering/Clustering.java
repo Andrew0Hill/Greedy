@@ -189,7 +189,15 @@ public class Clustering {
 
 		return lista;
 	}
-
+	public void printClustering(){
+		// Print out the final cluster assignment
+		for(Cluster c : this.getLg()){
+			System.out.println("Cluster " + c.getId_cluster());
+			for(VertName v : c.getVertices().values()){
+				System.out.println("\t"+v.getName());
+			}
+		}
+	}
 	public NameGraph getGrafo() {
 		return grafo;
 	}
