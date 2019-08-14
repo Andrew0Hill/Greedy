@@ -31,4 +31,26 @@ public class RecordVertex implements Comparable<RecordVertex>{
     public int compareTo(RecordVertex o) {
         return getName().compareTo(o.getName());
     }
+
+    @Override
+    // The hash code for a vertex is just the hashCode of its ID string.
+    // This is to ensure that we can do lookups on
+    public int hashCode(){
+        return name.hashCode();
+    }
+
+    @Override
+    // Equality should be between the ID strings of each RecordVertex.
+    public boolean equals(Object rv){
+
+        if(rv == this){
+            return true;
+        }else if (!(rv instanceof RecordVertex)){
+            return false;
+        }
+        RecordVertex v = (RecordVertex) rv;
+
+        return v.getName().equals(this.name);
+    }
+
 }

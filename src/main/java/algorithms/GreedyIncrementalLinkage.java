@@ -3,12 +3,20 @@ package algorithms;
 import cluster.Cluster;
 import cluster.ExclusiveClustering;
 import data.RecordVertex;
+import jdk.nashorn.internal.ir.Block;
 import org.jgrapht.Graph;
+import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
+import sun.awt.image.ImageWatched;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
@@ -17,61 +25,62 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
     // The working set contains all of the clusters we are currently considering in the clustering.
     private Queue<Cluster<V,E>> working_set;
     // The cluster ID map maps a RecordVertex to Cluster.
-    private HashMap<V,Cluster<V,E>> cluster_id_map;
+    private ConcurrentHashMap<V,Cluster<V,E>> cluster_id_map;
     // Set to hold all of the clusters we are not currently considering.
     private Set<Cluster<V,E>> finished_set;
-
+    // Inspector for getting the connected components of the graph.
+    private ConnectivityInspector<V,E> ci;
+    private ConcurrentHashMap<V,Cluster<V,E>> global_labels;
     // This constructor handles running incremental linkage where the initial linkage has not already been performed.
     // it performs the initial linkage internally.
     public GreedyIncrementalLinkage(SimpleWeightedGraph<V, E> initial_graph){
         this.working_set = new LinkedBlockingQueue<>();
         this.initial_graph = initial_graph;
-        this.cluster_id_map = new HashMap<>();
+        this.cluster_id_map = new ConcurrentHashMap<>();
         this.finished_set = new HashSet<>();
-        runInitialLinkage();
+        this.global_labels = new ConcurrentHashMap<>();
+        ci = new ConnectivityInspector<>(this.initial_graph);
+        //runInitialLinkage();
     }
 
     // This constructor handles running incremental linkage on a dataset where the initial linkage already exists
     public GreedyIncrementalLinkage(SimpleWeightedGraph<V,E> initial_graph,HashMap<V,Cluster<V,E>> cluster_labels){
         this.working_set = new LinkedBlockingQueue<>();
         this.initial_graph = initial_graph;
-        this.cluster_id_map = cluster_labels;
+        this.cluster_id_map = new ConcurrentHashMap<>();
+        this.cluster_id_map.putAll(cluster_labels);
         this.finished_set = new HashSet<>();
+        ci = new ConnectivityInspector<>(this.initial_graph);
         // Add all initial clusters to the finished set.
         this.finished_set.addAll(cluster_labels.values());
+        this.global_labels = new ConcurrentHashMap<>();
+        this.global_labels.putAll(cluster_labels);
     }
 
-    // Computes the correlation clustering penalty on the current working set.
-    private double computeGlobalPenalty(){
-        return computeLocalPenalty(this.initial_graph,this.cluster_id_map);
-    }
-
-    private double computeLocalPenalty(Graph<V,E> graph, HashMap<V,Cluster<V,E>> labels){
-        double penalty = 0;
-        for(E edge : graph.edgeSet()){
-            V src = graph.getEdgeSource(edge);
-            V trgt = graph.getEdgeTarget(edge);
-
-            int src_lbl = labels.get(src).getId();
-            int trgt_lbl = labels.get(trgt).getId();
-
-            if(src_lbl == trgt_lbl){
-                penalty += 1-graph.getEdgeWeight(edge);
-            }else{
-                penalty += graph.getEdgeWeight(edge);
-            }
-        }
-        return penalty;
-    }
-
-    public void runIncrementalLinkage(Set<V> vertices){
+    public void runIncrementalLinkage(Set<V> vertices) throws Exception{
 
         // This set is used so that we don't insert multiple references to a single Cluster<> into the
         // working queue. The HashSet will take care of any duplicates transparently.
-        Set<Cluster<V,E>> temp_working_set = new HashSet<>();
-
+        Set<Cluster<V,E>> temp_working_set = Collections.newSetFromMap(new ConcurrentHashMap<Cluster<V,E>,Boolean>());
+        final int num_processors = Runtime.getRuntime().availableProcessors();
+        System.out.println("Running with " + num_processors + " available processors.");
+        ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(num_processors);
         // Make new singleton clusters for all new vertices
+        int count = 0;
         for(V vert:vertices){
+            tpe.execute(() -> {
+                // Vertex set.
+                Set<V> sngl = new HashSet<>();
+                sngl.add(vert);
+                // Add a reference in the cluster map.
+                Cluster<V,E> new_clust = new Cluster<>(initial_graph,sngl);
+                cluster_id_map.put(vert,new_clust);
+                // By default, all new clusters should go into the working queue.
+                temp_working_set.add(new_clust);
+            });
+/*            if(count % 1000 == 0)
+                System.out.println(((double) count/vertices.size()) * 100+ "% complete.");
+            ++count;
             // Vertex set.
             Set<V> sngl = new HashSet<>();
             sngl.add(vert);
@@ -79,55 +88,47 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
             Cluster<V,E> new_clust = new Cluster<>(initial_graph,sngl);
             cluster_id_map.put(vert,new_clust);
             // By default, all new clusters should go into the working queue.
-            temp_working_set.add(new_clust);
+            temp_working_set.add(new_clust);*/
         }
-
-        for(V vert : vertices){
-            // Get the set of edges that are connected to this one.
-            Set<E> directly_connected = initial_graph.outgoingEdgesOf(vert);
-            // For each of these edges, get:
-            // 1. The associated V vertex
-            // 2. The Cluster assignment of this Vertex.
-            for(E edge : directly_connected){
-                // This graph is undirected, so we aren't sure whether the neighbor node is the "source" or "target" vertex.
-                // We check to make sure that we are assigning the neighbor vertex that is not equal to 'vert'
-                V neig_vert = initial_graph.getEdgeSource(edge) != vert ? initial_graph.getEdgeSource(edge) : initial_graph.getEdgeTarget(edge);
-                // Add this vertex's cluster to the temp_working_set
-                temp_working_set.add(cluster_id_map.get(neig_vert));
-            }
+        tpe.shutdown();
+        tpe.awaitTermination(120,TimeUnit.SECONDS);
+        Map<Graph<V,E>,HashMap<V,Cluster<V,E>>> connected_cmpnts = new ConcurrentHashMap<>();
+        tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(num_processors);
+        for(V vert: vertices){
+            tpe.execute(new Runnable() {
+                @Override
+                public void run() {
+                    // Get the connected component of this vertex.
+                    Set<V> cmpnt = ci.connectedSetOf(vert);
+                    // Get the subgraph with this connected component.
+                    Graph<V,E> subgraph = new AsSubgraph<>(initial_graph,cmpnt);
+                    if(!connected_cmpnts.containsKey(subgraph)){
+                        // Get the set of cluster labels within this connected component.
+                        // Note: The connected component will be the same for every vertex in the connected component,
+                        //       so we only need to do this once per connected component.
+                        HashMap<V,Cluster<V,E>> connected_clusts = new HashMap<>();
+                        for(V v : cmpnt){
+                            connected_clusts.put(v,cluster_id_map.get(v));
+                        }
+                        connected_cmpnts.put(subgraph,connected_clusts);
+                    }
+                }
+            });
         }
-
-        // At this point we should have the clusters that are directly connected to the increment in
-        // temp_working_set. We can now add these to the working set and run the clustering.
-        working_set.addAll(temp_working_set);
-        // We also need to remove any instances of these clusters from the finished set, because not doing so will
-        // cause duplicate references. Any Clusters that are in temp_working but not finished_set will not be removed.
-        finished_set.removeAll(temp_working_set);
-
-        System.out.println("There are " + this.working_set.size() + " clusters before clustering.");
-        System.out.println("Current Global Penalty: " + computeGlobalPenalty());
-
-        while(!working_set.isEmpty()){
-            Cluster<V,E> cur_clust = working_set.remove();
-            boolean changed = false;
-            changed = merge(cur_clust);
-            if(!changed)
-                changed = split(cur_clust);
-            if(!changed)
-                changed = move(cur_clust);
-            if(!changed){
-                System.out.println("Removing Cluster" + cur_clust.getId() + " from the working set.");
-                this.finished_set.add(cur_clust);
-            }
+        System.out.println("Finished building.");
+        tpe.shutdown();
+        tpe.awaitTermination(500,TimeUnit.SECONDS);
+        tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(num_processors);
+        for(Map.Entry<Graph<V,E>,HashMap<V,Cluster<V,E>>> entry: connected_cmpnts.entrySet()){
+            GreedyIncrementalLinkageTask<V,E> gilt = new GreedyIncrementalLinkageTask<>(entry.getKey(),entry.getValue(),this.global_labels);
+            System.out.println("Executing Runnable.");
+            tpe.execute(gilt);
         }
-
-        printClustering();
-
-        System.out.println("Done.");
-
+        tpe.shutdown();
+        tpe.awaitTermination(500,TimeUnit.SECONDS);
     }
 
-    public void runInitialLinkage(){
+   /* public void runInitialLinkage(){
         // Build singleton clusters for each vertex in the set.
 
         for(V vrt : initial_graph.vertexSet()){
@@ -163,7 +164,7 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
         printClustering();
 
         System.out.println("Done.");
-    }
+    }*/
 
     public void printClustering(){
         for(Cluster<V,E> clust : this.finished_set){
@@ -175,124 +176,12 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
         }
     }
 
-    public boolean merge(Cluster<V,E> clust){
-        boolean changed = false;
-        // Step 1: Iterate through each cluster in the working set (This cluster won't be included).
-        for(Cluster<V,E> neigh : this.working_set){
-
-            // Step 2: Calculate the local penalty under the current clustering.
-            double glbl_pnl = computeGlobalPenalty();
-            int save_id = changeClustID(neigh,clust.getId());
-            double merg_pnl = computeGlobalPenalty();
-
-            if(merg_pnl < glbl_pnl){
-                // If the change results in a lower penalty, then we should remove this cluster from the working set,
-                // and merge them together.
-                System.out.println("Merge: Global penalty decreased from " + glbl_pnl + " to " + merg_pnl);
-                mergeClusters(clust,neigh);
-                changed = true;
-                break;
-            }else{
-                // If it doesn't work out, revert the cluster to its old ID.
-                changeClustID(neigh,save_id);
-            }
-
+    public void printClusteringToFile() throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter("increment_test/output.csv"));
+        for(Map.Entry<V,Cluster<V,E>> entry : this.global_labels.entrySet()){
+            bw.write(((RecordVertex) entry.getKey()).getName() + "," + Integer.toString(entry.getValue().getId()) + "\n");
         }
-        return changed;
-    }
-
-    private void mergeClusters(Cluster<V,E> c1, Cluster<V,E> c2){
-
-        this.working_set.remove(c1);
-        this.working_set.remove(c2);
-
-        Set<V> new_vert_set = new HashSet<>();
-        new_vert_set.addAll(c1.vertexSet());
-        new_vert_set.addAll(c2.vertexSet());
-        // Get the connected component of this merged cluster.
-        Set<E> new_edge_set = new_vert_set.stream().map(vert -> initial_graph.incomingEdgesOf(vert)).flatMap(Set::stream).collect(Collectors.toSet());
-        // Make the new Cluster.
-        Cluster<V,E> new_clust = new Cluster<>(initial_graph,new_vert_set,new_edge_set);
-        // Add it to the working set.
-        this.working_set.add(new_clust);
-
-        // Update the cluster IDs to point to the new cluster
-        for(V vert : new_vert_set){
-            cluster_id_map.put(vert,new_clust);
-        }
-
-    }
-
-    private int changeClustID(Cluster<V,E> c, int new_id){
-        // We'll always merge IDs downward, so we choose the largest ID to get rid of.
-        int old_id = c.getId();
-        // Change the ID of this cluster.
-        c.setId(new_id);
-        return old_id;
-    }
-
-    private Cluster<V,E> changeVertexCluster(V vertex){
-        // Get a reference to the cluster currently containing this vertex.
-        Cluster<V,E> old_cluster = this.cluster_id_map.get(vertex);
-        // Make a new temporary cluster.
-        Set<V> vert_set = new HashSet<>();
-        vert_set.add(vertex);
-        Cluster<V,E> temp_cluster = new Cluster<>(initial_graph,vert_set);
-        // Update the reference to the new cluster
-        this.cluster_id_map.put(vertex,temp_cluster);
-        // Return the old cluster so we can reverse this later.
-        return old_cluster;
-    }
-
-    private boolean split(Cluster<V,E> c){
-        // Get the initial penalty.
-        double penalty = computeGlobalPenalty();
-        // Marker to see if we changed anything
-        boolean changed = false;
-        // If we do find a vertex that should be moved out of this cluster, then
-        // new_cluster will hold the new Cluster, and cluster_basis will hold the vertex.
-        V cluster_basis = null;
-        Cluster<V,E> new_cluster = null;
-        for(V vert : c.vertexSet()){
-            // Change this vertex's cluster
-            new_cluster = changeVertexCluster(vert);
-            double new_penalty = computeGlobalPenalty();
-            if(new_penalty < penalty){
-                System.out.println("Split: Global penalty decreased from " + penalty + " to " + new_penalty);
-                // At this point, we need to evaluate every node except the node we just removed, to see if moving
-                // this node to a new cluster improves the clustering.
-                changed = true;
-                cluster_basis = vert;
-                break;
-            }else{
-                // Otherwise undo
-                this.cluster_id_map.put(vert,c);
-            }
-        }
-        if(changed) {
-            for (V vert : c.vertexSet()) {
-                // If the Vertex we are iterating on is not the cluster basis
-                if(vert != cluster_basis){
-                    double cur_penalty = computeGlobalPenalty();
-                    // Check if moving this vertex to the new cluster improves it.
-                    this.cluster_id_map.put(vert,new_cluster);
-                    // Get the penalty after moving this vertex.
-                    double new_penalty = computeGlobalPenalty();
-                    // If the new penalty is lower, keep the change.
-                    if(new_penalty < cur_penalty){
-                        System.out.println("Split: Global penalty decreased from " + penalty + " to " + new_penalty);
-                    }
-                    // Otherwise move the vertex back to its old cluster.
-                    else{
-                        this.cluster_id_map.put(vert,c);
-                    }
-                }
-            }
-            // Add the new cluster we generated from splitting into the working set.
-            this.working_set.add(new_cluster);
-            this.working_set.add(c);
-        }
-        return changed;
+        bw.close();
     }
 
     // TODO: Find a way to do this that isn't linear in complexity.
@@ -305,46 +194,7 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
         return max_val;
     }
 
-    private boolean move(Cluster<V,E> c){
-        // For each vertex in the vertex set, check if moving this vertex to another cluster improves the clustering.
-        // Original clustering penalty.
 
-        // Change marker
-        boolean changed = false;
-        for(Cluster<V,E> neighbor : this.working_set) {
-            // Consider all of the points in the original cluster and the neighboring cluster.
-            Set<V> vertex_union = new HashSet<>();
-            vertex_union.addAll(c.vertexSet());
-            vertex_union.addAll(neighbor.vertexSet());
-            // Iterate over all the vertices in the union.
-            for (V vertex : vertex_union) {
-                double old_penalty = computeGlobalPenalty();
-                // Get a reference to the cluster that this vertex does not belong to.
-                Cluster<V,E> home_clust = cluster_id_map.get(vertex);
-                Cluster<V,E> opposite_clust = home_clust.equals(neighbor) ? c : neighbor;
-
-                this.cluster_id_map.put(vertex,opposite_clust);
-                opposite_clust.addVertex(vertex);
-                home_clust.removeVertex(vertex);
-                double new_penalty = computeGlobalPenalty();
-                // Keep if the score is below the old penalty.
-                if(new_penalty < old_penalty){
-                    System.out.println("Move: Global Penalty decreased from " + old_penalty + " to " + new_penalty);
-                    changed = true;
-                }
-                // If it doesn't work out, undo the cluster assignment.
-                else{
-                    this.cluster_id_map.put(vertex,home_clust);
-                    opposite_clust.removeVertex(vertex);
-                    home_clust.addVertex(vertex);
-                }
-            }
-
-        }
-        if(changed)
-            this.working_set.add(c);
-        return changed;
-    }
 
     @Override
     public List<Set<V>> getClusterClasses() {
