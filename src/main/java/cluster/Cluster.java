@@ -10,23 +10,30 @@ public class Cluster<V,E> extends AsSubgraph<V,E>  {
     private int id;
     public Cluster(Graph<V,E> base){
         super(base);
-        id = clustID++;
+        assignID();
     }
-
+    public synchronized int assignID(){
+        int id_to_return = clustID;
+        clustID++;
+        return id_to_return;
+    }
+    public synchronized void setClustID(int newID){
+        clustID = newID;
+    }
     public Cluster(Graph<V,E> base, Set<? extends V> vertexSubset){
         super(base,vertexSubset);
-        id = clustID++;
+        id = assignID();
     }
 
     public Cluster(Graph<V,E> base, Set<? extends V> vertexSubset, Set<? extends E> edgeSubset){
         super(base,vertexSubset,edgeSubset);
-        id = clustID++;
+        id = assignID();
     }
 
     public Cluster(Graph<V,E> base, Set<? extends V> vertexSubset, Set<? extends E> edgeSubset,Integer man_id){
         super(base,vertexSubset,edgeSubset);
         id = man_id;
-        clustID = man_id+1;
+        setClustID(man_id+1);
     }
 
     public int getId() {

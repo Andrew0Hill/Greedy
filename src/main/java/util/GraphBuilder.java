@@ -6,6 +6,7 @@ import data.Similarity;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
+import sun.security.provider.certpath.Vertex;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -153,4 +154,33 @@ public class GraphBuilder {
         return update_vertices;
     }
 
+    public static Set<RecordVertex> updateGraphFromEdgeList(SimpleWeightedGraph<RecordVertex,DefaultWeightedEdge> graph, List<List<String>> update){
+        HashSet<RecordVertex> vertices = new HashSet<>();
+        // Make new vertices, and check if they already exist in the graph.
+        for(List<String> row : update){
+            // Parse values from the raw data.
+            String node1 = row.get(2);
+            String node2 = row.get(4);
+            int clust_id = Integer.parseInt(row.get(5));
+            double score = Double.parseDouble(row.get(7))/100;
+
+
+            RecordVertex rv_1 = new RecordVertex(node1,null);
+            RecordVertex rv_2 = new RecordVertex(node2,null);
+
+            if(!graph.containsVertex(rv_1)){
+                graph.addVertex(rv_1);
+            }
+            if(!graph.containsVertex(rv_2)){
+                graph.addVertex(rv_2);
+            }
+
+            graph.addEdge(rv_1,rv_2);
+            graph.setEdgeWeight(rv_1,rv_2,score);
+
+            vertices.add(rv_1);
+            vertices.add(rv_2);
+        }
+        return vertices;
+    }
 }
