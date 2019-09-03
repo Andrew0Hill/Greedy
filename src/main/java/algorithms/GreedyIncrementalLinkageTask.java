@@ -1,6 +1,7 @@
 package algorithms;
 
 import cluster.Cluster;
+import data.RecordVertex;
 import org.jgrapht.Graph;
 import sun.awt.image.ImageWatched;
 
@@ -27,7 +28,9 @@ class GreedyIncrementalLinkageTask<V,E> implements Runnable{
     public GreedyIncrementalLinkageTask(Graph<V,E> graph, HashMap<V,Cluster<V,E>> cluster_labels, ConcurrentHashMap<V,Cluster<V,E>> glbl_clust_list){
         this.graph = graph;
         this.working_set = new LinkedBlockingQueue<>();
-        this.working_set.addAll(cluster_labels.values());
+
+        HashSet<Cluster<V,E>> clust_set = new HashSet<>(cluster_labels.values());
+        this.working_set.addAll(clust_set);
         this.cluster_id_map = cluster_labels;
         this.finished_set = new HashSet<>();
         //this.finished_set.addAll(cluster_labels.values());
@@ -227,6 +230,12 @@ class GreedyIncrementalLinkageTask<V,E> implements Runnable{
             System.out.println(prefix + " Iteration");
             Cluster<V,E> cur_clust = this.working_set.remove();
             boolean changed = false;
+            for(V vert : cur_clust.vertexSet()){
+                RecordVertex rv = (RecordVertex) vert;
+                if(rv.getName().equals("55276")){
+                    System.out.println("Found");
+                }
+            }
             changed = merge(cur_clust);
             if(!changed)
                 changed = split(cur_clust);

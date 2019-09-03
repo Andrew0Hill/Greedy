@@ -63,6 +63,7 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
         // working queue. The HashSet will take care of any duplicates transparently.
         Set<Cluster<V,E>> temp_working_set = Collections.newSetFromMap(new ConcurrentHashMap<Cluster<V,E>,Boolean>());
         final int num_processors = Runtime.getRuntime().availableProcessors();
+        //final int num_processors = 1;
         System.out.println("Running with " + num_processors + " available processors.");
         ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(num_processors);
         // Make new singleton clusters for all new vertices
@@ -78,17 +79,7 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
                 // By default, all new clusters should go into the working queue.
                 temp_working_set.add(new_clust);
             });
-/*            if(count % 1000 == 0)
-                System.out.println(((double) count/vertices.size()) * 100+ "% complete.");
-            ++count;
-            // Vertex set.
-            Set<V> sngl = new HashSet<>();
-            sngl.add(vert);
-            // Add a reference in the cluster map.
-            Cluster<V,E> new_clust = new Cluster<>(initial_graph,sngl);
-            cluster_id_map.put(vert,new_clust);
-            // By default, all new clusters should go into the working queue.
-            temp_working_set.add(new_clust);*/
+
         }
         tpe.shutdown();
         tpe.awaitTermination(120,TimeUnit.SECONDS);
@@ -127,44 +118,7 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
         tpe.shutdown();
         tpe.awaitTermination(500,TimeUnit.SECONDS);
     }
-
-   /* public void runInitialLinkage(){
-        // Build singleton clusters for each vertex in the set.
-
-        for(V vrt : initial_graph.vertexSet()){
-            // Create the vertex set.
-            HashSet<V> vertex_set = new HashSet<>();
-            vertex_set.add(vrt);
-            // Create the edge set by selecting all of the edges that participate in this vertex.
-            //Set<E> edge_set = initial_graph.edgesOf(vrt);
-            // Create a singleton Cluster, which contains one vertex and all of that vertex's incident edges.
-            Cluster<V,E> singleton = new Cluster<>(initial_graph,vertex_set);
-            working_set.add(singleton);
-            // Add the reference to the cluster ID.
-            cluster_id_map.put(vrt,singleton);
-        }
-
-        System.out.println("There are " + this.working_set.size() + " clusters before clustering.");
-        System.out.println("Current Global Penalty: " + computeGlobalPenalty());
-
-        while(!working_set.isEmpty()){
-            Cluster<V,E> cur_clust = working_set.remove();
-            boolean changed = false;
-            changed = merge(cur_clust);
-            if(!changed)
-                changed = split(cur_clust);
-            if(!changed)
-                changed = move(cur_clust);
-            if(!changed){
-                System.out.println("Removing Cluster" + cur_clust.getId() + " from the working set.");
-                this.finished_set.add(cur_clust);
-            }
-        }
-
-        printClustering();
-
-        System.out.println("Done.");
-    }*/
+    
 
     public void printClustering(){
         for(Cluster<V,E> clust : this.finished_set){
@@ -176,8 +130,8 @@ public class GreedyIncrementalLinkage<V,E> implements ExclusiveClustering<V> {
         }
     }
 
-    public void printClusteringToFile() throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter("increment_test/output.csv"));
+    public void printClusteringToFile(String filename) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
         for(Map.Entry<V,Cluster<V,E>> entry : this.global_labels.entrySet()){
             bw.write(((RecordVertex) entry.getKey()).getName() + "," + Integer.toString(entry.getValue().getId()) + "\n");
         }

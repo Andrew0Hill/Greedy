@@ -17,7 +17,11 @@ public class GraphBuilder {
     public static SimpleWeightedGraph<RecordVertex, DefaultWeightedEdge> buildGraphFromEdgeList(List<List<String>> edges,
                                                                                                 HashMap<Integer,List<String>> backing_data,
                                                                                                 HashMap<RecordVertex, Cluster<RecordVertex,DefaultWeightedEdge>> cluster_vertex_map){
+        // Maps Node names to RecordVertex instances
         HashMap<String,RecordVertex> vertex_map = new HashMap<>();
+        // Maps un-improved network IDs to their new improved IDs
+        HashMap<Integer,Integer> old_to_new = new HashMap<>();
+        // Maps each cluster number to the Cluster instance it belongs to (enables looking up cluster from ID).
         HashMap<Integer,Cluster<RecordVertex,DefaultWeightedEdge>> cluster_number_map = new HashMap<>();
 
         SimpleWeightedGraph<RecordVertex, DefaultWeightedEdge> graph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
@@ -25,7 +29,7 @@ public class GraphBuilder {
             // Parse values from the raw data.
             String node1 = edge.get(2);
             String node2 = edge.get(4);
-            int clust_id = Integer.parseInt(edge.get(5));
+            int old_clust_id = Integer.parseInt(edge.get(5));
             double score = Double.parseDouble(edge.get(7))/100;
 
             // If either of the keys is not already a Vertex in the graph, add them.
@@ -54,11 +58,21 @@ public class GraphBuilder {
             Set<DefaultWeightedEdge> edge_set = new HashSet<>();
             edge_set.add(graph.getEdge(left,mid));
 
-            if(!cluster_number_map.containsKey(clust_id)){
-                Cluster<RecordVertex,DefaultWeightedEdge> clust = new Cluster<>(graph,vert_pair,edge_set,clust_id);
-                cluster_number_map.put(clust_id,clust);
+            // Check if we have a mapping from old_id -> new_id
+            // If not, then this is a new Cluster.
+            // If we already have a mapping, then add this vertex to that cluster.
+            Integer cid;
+            if(!old_to_new.containsKey(old_clust_id)){
+                Cluster<RecordVertex,DefaultWeightedEdge> clust = new Cluster<>(graph,vert_pair,edge_set);
+                // Add the mapping from old_id -> new_id
+                old_to_new.put(old_clust_id,clust.getId());
+                // Add a reference into the new ID->cluster map so we can access this cluster again.
+                cluster_number_map.put(clust.getId(),clust);
+                cid = clust.getId();
+            }else{
+                cid = old_to_new.get(old_clust_id);
             }
-            Cluster<RecordVertex,DefaultWeightedEdge> network_id = cluster_number_map.get(clust_id);
+            Cluster<RecordVertex,DefaultWeightedEdge> network_id = cluster_number_map.get(cid);
             network_id.addVertex(left);
             network_id.addVertex(mid);
             network_id.addEdge(left,mid,graph.getEdge(left,mid));
@@ -170,16 +184,15 @@ public class GraphBuilder {
 
             if(!graph.containsVertex(rv_1)){
                 graph.addVertex(rv_1);
+                vertices.add(rv_1);
             }
             if(!graph.containsVertex(rv_2)){
                 graph.addVertex(rv_2);
+                vertices.add(rv_2);
             }
 
             graph.addEdge(rv_1,rv_2);
             graph.setEdgeWeight(rv_1,rv_2,score);
-
-            vertices.add(rv_1);
-            vertices.add(rv_2);
         }
         return vertices;
     }

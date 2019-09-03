@@ -12,12 +12,12 @@ public class Cluster<V,E> extends AsSubgraph<V,E>  {
         super(base);
         assignID();
     }
-    public synchronized int assignID(){
+    public static synchronized int assignID(){
         int id_to_return = clustID;
         clustID++;
         return id_to_return;
     }
-    public synchronized void setClustID(int newID){
+    public static synchronized void setClustID(int newID){
         clustID = newID;
     }
     public Cluster(Graph<V,E> base, Set<? extends V> vertexSubset){
